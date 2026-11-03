@@ -5,6 +5,9 @@ edition = "2024"
 description = "Cross-platform binary file data storage and manipulation library"
 license = "MIT"
 readme = "README.md"
+repository = "https://github.com/yo-le-zz/bymm"
+homepage = "https://github.com/yo-le-zz/bymm"
+documentation = "https://docs.rs/bymm"
 keywords = ["binary", "storage", "file", "embedded-data"]
 categories = ["filesystem", "encoding"]
 
