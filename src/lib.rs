@@ -1,5 +1,6 @@
-//! bymm - Binary data storage library.
-//!
-//! Read, write and manage persistent data in binary files.
+mod utils;
+mod write;
+mod read;
+mod see;
 
-pub struct BinaryStorage;
+pub use write::{write, append, delete, clear};
