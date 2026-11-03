@@ -1,0 +1,44 @@
+[package]
+name = "lib_test"
+version = "1.0.0"
+edition = "2024"
+description = "Programs that build the fake executable and exercise bymm on it."
+
+[dependencies]
+bymm = { path = "../.." }
+
+[[bin]]
+name = "setup"
+path = "src/setup.rs"
+
+[[bin]]
+name = "test_write"
+path = "src/tests/write.rs"
+
+[[bin]]
+name = "test_append"
+path = "src/tests/append.rs"
+
+[[bin]]
+name = "test_read"
+path = "src/tests/read.rs"
+
+[[bin]]
+name = "test_delete"
+path = "src/tests/delete.rs"
+
+[[bin]]
+name = "test_clear"
+path = "src/tests/clear.rs"
+
+[[bin]]
+name = "test_limit"
+path = "src/tests/limit.rs"
+
+[[bin]]
+name = "test_run"
+path = "src/tests/run.rs"
+
+[[bin]]
+name = "test_invalid_file"
+path = "src/tests/invalid_file.rs"

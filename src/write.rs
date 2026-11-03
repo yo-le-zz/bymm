@@ -1,93 +1,53 @@
-use std::fs::File;
-use std::io::{self, ErrorKind};
+//! One-call helpers to modify a binary (open → change → commit).
+//!
+//! Each call is atomic but rewrites the whole file; to apply many changes at
+//! once, open a [`Bymm`] handle and commit only once.
 
-use crate::utils::entries::{
-    append_entry,
-    find_entry,
-    read_all_entries,
-    replace_storage,
-};
+use std::path::Path;
 
-use crate::utils::header::{
-    read_header,
-    update_entry_count,
-    verify_header,
-    write_header,
-};
+use crate::{Bymm, Options, Result};
 
-/// Creates an entry or replaces its existing data.
-pub fn write(
-    file: &mut File,
-    key: &str,
-    data: &[u8],
-) -> io::Result<()> {
-    // Validate the key.
-    if key.is_empty() {
-        return Err(io::Error::new(
-            ErrorKind::InvalidInput,
-            "Entry key cannot be empty",
-        ));
-    }
-
-    // Verify or initialize the storage.
-    if !verify_header(file)? {
-        if file.metadata()?.len() != 0 {
-            return Err(io::Error::new(
-                ErrorKind::InvalidData,
-                "Invalid BYMM storage",
-            ));
-        }
-
-        write_header(file)?;
-    }
-
-    // Check whether the entry already exists.
-    match find_entry(file, key)? {
-        Some(_) => {
-            // Read all existing entries.
-            let mut entries = read_all_entries(file)?;
-
-            // Replace the matching entry.
-            for (existing_key, existing_data) in &mut entries {
-                if existing_key == key {
-                    *existing_data = data.to_vec();
-                    break;
-                }
-            }
-
-            // Rebuild the storage.
-            replace_storage(file, entries)?;
-        }
-
-        None => {
-            // Append the new entry.
-            append_entry(file, key, data)?;
-
-            // Update the entry count.
-            let header = read_header(file)?;
-
-            let new_count = header.entry_count
-                .checked_add(1)
-                .ok_or_else(|| io::Error::new(
-                    ErrorKind::InvalidData,
-                    "Entry count overflow",
-                ))?;
-
-            update_entry_count(file, new_count)?;
-        }
-    }
-
-    Ok(())
+/// Creates the entry `key` in the binary at `path`, or replaces its value.
+///
+/// The storage is created on first use.
+pub fn write(path: impl AsRef<Path>, key: &str, data: impl AsRef<[u8]>) -> Result<()> {
+    let mut b = Bymm::open(path)?;
+    b.write(key, data)?;
+    b.commit()
 }
 
-pub fn append() {
-    todo!();
+/// Adds `data` at the end of the value of `key` (creating it if needed).
+pub fn append(path: impl AsRef<Path>, key: &str, data: impl AsRef<[u8]>) -> Result<()> {
+    let mut b = Bymm::open(path)?;
+    b.append(key, data)?;
+    b.commit()
 }
 
-pub fn delete() {
-    todo!();
+/// Removes `key`. Returns `true` if it existed.
+pub fn delete(path: impl AsRef<Path>, key: &str) -> Result<bool> {
+    let mut b = Bymm::open(path)?;
+    let existed = b.delete(key)?;
+    b.commit()?;
+    Ok(existed)
 }
 
-pub fn clear() {
-    todo!();
+/// Removes every entry, keeping the empty storage and its limit.
+pub fn clear(path: impl AsRef<Path>) -> Result<()> {
+    let mut b = Bymm::open(path)?;
+    b.clear()?;
+    b.commit()
+}
+
+/// Sets the maximum size of the embedded storage (in bytes, [`u64::MAX`] = unlimited).
+pub fn set_limit(path: impl AsRef<Path>, bytes: u64) -> Result<()> {
+    let mut b = Bymm::open_with(path, Options::default())?;
+    b.set_limit(bytes)?;
+    b.commit()
+}
+
+/// Removes the storage entirely, restoring the original binary byte for byte.
+pub fn strip(path: impl AsRef<Path>) -> Result<()> {
+    let mut b = Bymm::open(path)?;
+    b.strip()?;
+    b.commit()
 }

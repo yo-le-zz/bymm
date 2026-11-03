@@ -1,14 +1,22 @@
 [package]
 name = "bymm"
-version = "0.1.1"
+version = "1.0.0"
 edition = "2024"
-description = "Cross-platform binary file data storage and manipulation library"
+rust-version = "1.85"
+authors = ["yolezz"]
+description = "Embed, read, edit and erase data inside any executable (ELF, PE, Mach-O or unknown) on Linux and Windows, with auto-detection and a configurable size limit"
 license = "MIT"
 readme = "README.md"
 repository = "https://github.com/yo-le-zz/bymm"
 homepage = "https://github.com/yo-le-zz/bymm"
 documentation = "https://docs.rs/bymm"
-keywords = ["binary", "storage", "file", "embedded-data"]
-categories = ["filesystem", "encoding"]
+keywords = ["binary", "embed", "executable", "storage", "elf"]
+categories = ["filesystem", "encoding", "command-line-utilities"]
+exclude = ["/test", "/.github", "/target"]
 
 [dependencies]
+
+[[bin]]
+name = "bymm"
+path = "src/bin/bymm.rs"
+doc = false

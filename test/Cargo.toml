@@ -1,0 +1,3 @@
+[workspace]
+members = ["fake", "lib_test"]
+resolver = "3"
